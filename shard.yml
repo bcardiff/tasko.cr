@@ -1,0 +1,9 @@
+name: tasko
+version: 0.1.0
+
+authors:
+  - Brian J. Cardiff <bcardiff@gmail.com>
+
+crystal: 0.36.1
+
+license: MIT
