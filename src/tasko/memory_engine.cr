@@ -1,7 +1,9 @@
-require "json"
-require "uuid"
+require "./helpers"
 
 class Tasko::MemoryEngine < Tasko::Engine
+  include JSONTaskSerialization
+  include UUIDTaskKeys
+
   enum State
     Pending
     Ready
@@ -22,18 +24,6 @@ class Tasko::MemoryEngine < Tasko::Engine
 
   def initialize
     @tasks = Hash(Key, MemoryTask).new
-  end
-
-  def create_task_key : Key
-    Key.new(value: "task:#{UUID.random}")
-  end
-
-  def load_task_data(serialized, as type : Class)
-    type.from_json(serialized)
-  end
-
-  def save_task_data(data : D) forall D
-    data.to_json
   end
 
   def submit_changeset(changeset : Changeset)

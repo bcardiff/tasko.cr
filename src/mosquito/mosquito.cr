@@ -1,5 +1,6 @@
 require "mosquito"
 require "../tasko/engine"
+require "../tasko/helpers"
 
 private def redis_url
   ENV["REDIS_URL"]? || "redis://localhost:6379"
@@ -20,19 +21,10 @@ module Mosquito
 end
 
 class Tasko::MosquitoEngine < Tasko::Engine
+  include JSONTaskSerialization
+  include UUIDTaskKeys
+
   class_property! application : Application
-
-  def create_task_key : Key
-    Key.new(value: "task:#{UUID.random}")
-  end
-
-  def load_task_data(serialized, as type : Class)
-    type.from_json(serialized)
-  end
-
-  def save_task_data(data : D) forall D
-    data.to_json
-  end
 
   def submit_changeset(changeset : Changeset)
     redis.multi do |multi|

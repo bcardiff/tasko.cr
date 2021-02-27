@@ -1,7 +1,9 @@
 class Tasko::Application
-  property engine : Engine = MemoryEngine.new
-
+  getter engine : Engine
   @definitions = Hash(String, Proc(String, Context, Nil)).new
+
+  def initialize(@engine : Engine = MemoryEngine.new)
+  end
 
   def define_task(name : String, body : Proc(D, Context, Nil)) forall D
     raise "Task #{name} already defined" if @definitions.has_key?(name)
