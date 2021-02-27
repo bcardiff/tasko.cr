@@ -16,7 +16,12 @@ class Tasko::RedisEngine < Tasko::Engine
   def submit_changeset(changeset : Changeset, current_task_key : Key?)
     redis.multi do |multi|
       changeset.created_tasks.each do |change|
-        multi.hmset(descriptor_key(change.key), {"name": change.name, "serialized_data": change.serialized_data})
+        multi.hmset(descriptor_key(change.key), {
+          "key":             change.key.value,
+          "name":            change.name,
+          "serialized_data": change.serialized_data,
+          "initiated_by":    current_task_key.try(&.value),
+        })
         multi.rpush(pending_tasks_key, change.key.value)
       end
 
@@ -101,6 +106,25 @@ class Tasko::RedisEngine < Tasko::Engine
     # restore all ready and running tasks to pending
     move_all_list(running_tasks_key, pending_tasks_key)
     move_all_list(ready_tasks_key, pending_tasks_key)
+  end
+
+  def stats : Array(TaskStats)
+    completed = Set(Key).new
+    redis.lrange(completed_tasks_key, 0, -1).each do |k|
+      completed << Key.new(value: k.as(String))
+    end
+
+    redis.keys("tasko:descriptor:*").map { |k|
+      res = redis.hmget(k.as(String), "key", "initiated_by")
+      task = Key.new(value: res[0].as(String))
+      initiated_by = res[1].as(String?).presence.try { |v| Key.new(value: v) }
+
+      TaskStats.new(
+        descriptor: get_task_descriptor(task),
+        completed: completed.includes?(task),
+        initiated_by: initiated_by
+      )
+    }
   end
 
   protected def move_all_list(source, target)

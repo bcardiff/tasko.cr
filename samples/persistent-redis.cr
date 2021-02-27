@@ -34,5 +34,8 @@ define_square_sum_tasks(app, context)
 app.schedule_task "square_sum", [1, 2, 3, 4]
 
 puts "Starting..."
+Tasko.generate_dot(STDOUT, app)
+puts
+
 app.run(exit_on_done: true)
 pp! context.final_result # => 30
