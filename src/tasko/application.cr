@@ -20,14 +20,24 @@ class Tasko::Application
   end
 
   def run(exit_on_done : Bool = false)
+    engine.prepare(self)
+
     if exit_on_done
-      while (task = engine.receive_task?)
-        execute_task task
+      while !engine.done?
+        while (task = engine.receive_task?)
+          engine.execute_task(task, self)
+        end
+
+        sleep 1
+        Fiber.yield
       end
+
+      # TODO should wait for all current tasks to finish
     end
   end
 
-  protected def execute_task(task : TaskDescriptor)
+  # :nodoc:
+  def execute_task(task : TaskDescriptor)
     changeset = create_changeset
     context = Context.new(changeset, task.key, engine.tasks_dependencies(task.key))
 
@@ -38,7 +48,7 @@ class Tasko::Application
     else
       engine.submit_changeset(changeset)
     ensure
-      engine.mark_as_completed(task.key)
+      engine.mark_as_completed(task.key, self)
     end
   end
 

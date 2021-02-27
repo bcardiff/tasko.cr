@@ -53,21 +53,25 @@ class Tasko::MemoryEngine < Tasko::Engine
     check_ready_tasks
   end
 
-  def receive_task? : TaskDescriptor?
+  def receive_task? : Key?
     check_ready_tasks
 
     # TODO lock for MT or channels
     @tasks.each_value do |t|
       if t.state == State::Ready
         t.state = State::Running
-        return t.descriptor
+        return t.descriptor.key
       end
     end
 
     nil
   end
 
-  def mark_as_completed(task : Key) : Nil
+  def execute_task(task : Key, application : Application) : Nil
+    application.execute_task(@tasks[task].descriptor)
+  end
+
+  def mark_as_completed(task : Key, application : Application) : Nil
     t = @tasks[task]
     raise "Task is not running" unless t.state == State::Running
     t.state = State::Completed
@@ -75,6 +79,13 @@ class Tasko::MemoryEngine < Tasko::Engine
 
   def tasks_dependencies(task : Key) : Array(Key)
     @tasks[task].dependencies.dup
+  end
+
+  def done? : Bool
+    @tasks.values.all? { |t| t.state == State::Completed }
+  end
+
+  def prepare(application : Application) : Nil
   end
 
   protected def check_ready_tasks

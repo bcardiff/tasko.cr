@@ -7,9 +7,15 @@ abstract class Tasko::Engine
 
   abstract def submit_changeset(changeset : Changeset)
 
-  abstract def receive_task? : TaskDescriptor?
+  abstract def receive_task? : Key?
 
-  abstract def mark_as_completed(task : Key) : Nil
+  abstract def mark_as_completed(task : Key, application : Application) : Nil
 
   abstract def tasks_dependencies(task : Key) : Array(Key)
+
+  abstract def execute_task(task : Key, application : Application) : Nil
+
+  abstract def done? : Bool
+
+  abstract def prepare(application : Application) : Nil
 end
