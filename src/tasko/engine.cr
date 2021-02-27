@@ -5,11 +5,16 @@ abstract class Tasko::Engine
 
   abstract def save_task_data(data : D) forall D
 
-  abstract def submit_changeset(changeset : Changeset)
+  abstract def submit_changeset(changeset : Changeset, current_task_key : Key?)
 
   abstract def mark_as_completed(task : Key) : Nil
 
   abstract def tasks_dependencies(task : Key) : Array(Key)
 
   abstract def run(application : Application, exit_on_done : Bool) : Nil
+
+  # Optional
+  def stats : Array(TaskStats)
+    [] of TaskStats
+  end
 end

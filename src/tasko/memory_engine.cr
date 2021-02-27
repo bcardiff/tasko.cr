@@ -15,9 +15,10 @@ class Tasko::MemoryEngine < Tasko::Engine
   class MemoryTask
     getter descriptor : TaskDescriptor
     getter dependencies : Array(Key)
+    getter initiated_by : Key?
     property state : State
 
-    def initialize(@descriptor : TaskDescriptor)
+    def initialize(@descriptor : TaskDescriptor, @initiated_by : Key?)
       @dependencies = Array(Key).new
       @state = State::Pending
     end
@@ -29,12 +30,19 @@ class Tasko::MemoryEngine < Tasko::Engine
 
   getter! application : Application
 
-  def submit_changeset(changeset : Changeset)
+  def submit_changeset(changeset : Changeset, current_task_key : Key?)
     # TODO lock for MT
 
     changeset.created_tasks.each do |change|
       # TODO check that task are not overwritten
-      @tasks[change.key] = MemoryTask.new(TaskDescriptor.new(key: change.key, name: change.name, serialized_data: change.serialized_data))
+      @tasks[change.key] = MemoryTask.new(
+        TaskDescriptor.new(
+          key: change.key,
+          name: change.name,
+          serialized_data: change.serialized_data,
+        ),
+        initiated_by: current_task_key
+      )
     end
 
     # TODO check all tasks exists
@@ -79,6 +87,16 @@ class Tasko::MemoryEngine < Tasko::Engine
   end
 
   def prepare(@application : Application) : Nil
+  end
+
+  def stats : Array(TaskStats)
+    @tasks.map { |_, t|
+      TaskStats.new(
+        descriptor: t.descriptor,
+        completed: t.state == State::Completed,
+        initiated_by: t.initiated_by
+      )
+    }
   end
 
   protected def check_ready_tasks

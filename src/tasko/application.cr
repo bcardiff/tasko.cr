@@ -17,7 +17,7 @@ class Tasko::Application
   def schedule_task(name : String, data : D) : Key forall D
     changeset = create_changeset
     res = changeset.create_task name, data
-    engine.submit_changeset(changeset)
+    engine.submit_changeset(changeset, nil)
     res
   end
 
@@ -35,7 +35,7 @@ class Tasko::Application
     rescue
       # TODO Log / Retry
     else
-      engine.submit_changeset(changeset)
+      engine.submit_changeset(changeset, task.key)
     ensure
       engine.mark_as_completed(task.key)
     end

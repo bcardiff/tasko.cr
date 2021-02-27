@@ -13,7 +13,7 @@ class Tasko::RedisEngine < Tasko::Engine
   def initialize(@redis : ::Redis::PooledClient)
   end
 
-  def submit_changeset(changeset : Changeset)
+  def submit_changeset(changeset : Changeset, current_task_key : Key?)
     redis.multi do |multi|
       changeset.created_tasks.each do |change|
         multi.hmset(descriptor_key(change.key), {"name": change.name, "serialized_data": change.serialized_data})
