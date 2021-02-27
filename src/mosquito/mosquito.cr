@@ -23,6 +23,7 @@ end
 class Tasko::MosquitoEngine < Tasko::Engine
   include JSONTaskSerialization
   include UUIDTaskKeys
+  include NaivePollingScheduler
 
   class_property! application : Application
 
@@ -54,7 +55,7 @@ class Tasko::MosquitoEngine < Tasko::Engine
     nil
   end
 
-  def mark_as_completed(task : Key, application : Application) : Nil
+  def mark_as_completed(task : Key) : Nil
     ready_tasks = [] of Key
 
     redis.smembers(following_tasks_key(task)).each do |next_task|
@@ -71,7 +72,7 @@ class Tasko::MosquitoEngine < Tasko::Engine
 
     # we can send task right away, there is not need to wait for a receive_task? call
     ready_tasks.each do |next_task|
-      execute_task(task, application)
+      execute_task(task)
     end
 
     # TODO recently created tasks could be check if they can run
@@ -81,7 +82,7 @@ class Tasko::MosquitoEngine < Tasko::Engine
     redis.smembers(all_dependencies_key(task)).map { |e| Key.new(value: e.as(String)) }
   end
 
-  def execute_task(task : Key, application : Application) : Nil
+  def execute_task(task : Key) : Nil
     ExecuteTask.new(raw_key: task.value).enqueue
     redis.sadd(dispatched_tasks_key, task.value)
     redis.srem(pending_tasks_key, task.value)

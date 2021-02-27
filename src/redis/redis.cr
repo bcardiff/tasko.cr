@@ -5,7 +5,9 @@ require "../tasko/helpers"
 class Tasko::RedisEngine < Tasko::Engine
   include JSONTaskSerialization
   include UUIDTaskKeys
+  include NaivePollingScheduler
 
+  getter! application : Application
   getter redis : ::Redis::PooledClient
 
   def initialize(@redis : ::Redis::PooledClient)
@@ -58,7 +60,7 @@ class Tasko::RedisEngine < Tasko::Engine
     task.try { |v| Key.new(value: v.as(String)) }
   end
 
-  def mark_as_completed(task : Key, application : Application) : Nil
+  def mark_as_completed(task : Key) : Nil
     ready_tasks = [] of Key
 
     redis.smembers(following_tasks_key(task)).each do |next_task|
@@ -85,7 +87,7 @@ class Tasko::RedisEngine < Tasko::Engine
     redis.smembers(all_dependencies_key(task)).map { |e| Key.new(value: e.as(String)) }
   end
 
-  def execute_task(task : Key, application : Application) : Nil
+  def execute_task(task : Key) : Nil
     application.execute_task(get_task_descriptor(task))
   end
 
@@ -95,7 +97,7 @@ class Tasko::RedisEngine < Tasko::Engine
       redis.llen(running_tasks_key) == 0
   end
 
-  def prepare(application : Application) : Nil
+  def prepare(@application : Application) : Nil
     # restore all ready and running tasks to pending
     move_all_list(running_tasks_key, pending_tasks_key)
     move_all_list(ready_tasks_key, pending_tasks_key)

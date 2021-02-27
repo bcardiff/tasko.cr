@@ -3,6 +3,7 @@ require "./helpers"
 class Tasko::MemoryEngine < Tasko::Engine
   include JSONTaskSerialization
   include UUIDTaskKeys
+  include NaivePollingScheduler
 
   enum State
     Pending
@@ -25,6 +26,8 @@ class Tasko::MemoryEngine < Tasko::Engine
   def initialize
     @tasks = Hash(Key, MemoryTask).new
   end
+
+  getter! application : Application
 
   def submit_changeset(changeset : Changeset)
     # TODO lock for MT
@@ -57,11 +60,11 @@ class Tasko::MemoryEngine < Tasko::Engine
     nil
   end
 
-  def execute_task(task : Key, application : Application) : Nil
+  def execute_task(task : Key) : Nil
     application.execute_task(@tasks[task].descriptor)
   end
 
-  def mark_as_completed(task : Key, application : Application) : Nil
+  def mark_as_completed(task : Key) : Nil
     t = @tasks[task]
     raise "Task is not running" unless t.state == State::Running
     t.state = State::Completed
@@ -75,7 +78,7 @@ class Tasko::MemoryEngine < Tasko::Engine
     @tasks.values.all? { |t| t.state == State::Completed }
   end
 
-  def prepare(application : Application) : Nil
+  def prepare(@application : Application) : Nil
   end
 
   protected def check_ready_tasks

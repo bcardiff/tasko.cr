@@ -22,20 +22,7 @@ class Tasko::Application
   end
 
   def run(exit_on_done : Bool = false)
-    engine.prepare(self)
-
-    if exit_on_done
-      while !engine.done?
-        while (task = engine.receive_task?)
-          engine.execute_task(task, self)
-        end
-
-        sleep 1
-        Fiber.yield
-      end
-
-      # TODO should wait for all current tasks to finish
-    end
+    engine.run(self, exit_on_done)
   end
 
   # :nodoc:
@@ -50,7 +37,7 @@ class Tasko::Application
     else
       engine.submit_changeset(changeset)
     ensure
-      engine.mark_as_completed(task.key, self)
+      engine.mark_as_completed(task.key)
     end
   end
 
