@@ -10,5 +10,8 @@ development_dependencies:
   # mosquito is an optional dependency
   mosquito:
     github: robacarp/mosquito
+  # redis is an optional dependency
+  redis:
+    github: stefanwille/crystal-redis
 
 license: MIT
