@@ -1,6 +1,5 @@
 require "log"
 require "../src/tasko"
-require "../src/mosquito"
 require "./square_sum"
 
 Log.setup_from_env

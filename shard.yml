@@ -7,9 +7,6 @@ authors:
 crystal: 0.36.1
 
 development_dependencies:
-  # mosquito is an optional dependency
-  mosquito:
-    github: robacarp/mosquito
   # redis is an optional dependency
   redis:
     github: stefanwille/crystal-redis
