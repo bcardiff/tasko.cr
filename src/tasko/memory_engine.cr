@@ -26,9 +26,11 @@ class Tasko::MemoryEngine < Tasko::Engine
 
   def initialize
     @tasks = Hash(Key, MemoryTask).new
+    @store = ::Tasko::MemoryEngine::KVStore.new(self)
   end
 
   getter! application : Application
+  getter! store : ::Tasko::KVStore
 
   def submit_changeset(changeset : Changeset, current_task_key : Key?)
     # TODO lock for MT
@@ -107,6 +109,20 @@ class Tasko::MemoryEngine < Tasko::Engine
       if t.dependencies.all? { |d| @tasks[d].state == State::Completed }
         t.state = State::Ready
       end
+    end
+  end
+
+  class KVStore < ::Tasko::KVStore
+    def initialize(@engine : MemoryEngine)
+      @data = Hash(String, String).new
+    end
+
+    def save(key : String, value : D) : Nil forall D
+      @data[key] = @engine.save_task_data(value)
+    end
+
+    def load(key : String, as type : Class)
+      @engine.load_task_data(@data[key], as: type)
     end
   end
 end

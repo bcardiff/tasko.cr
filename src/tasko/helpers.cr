@@ -2,11 +2,11 @@ require "uuid"
 require "json"
 
 module Tasko::JSONTaskSerialization
-  def load_task_data(serialized, as type : Class)
+  def load_task_data(serialized : String, as type : Class)
     type.from_json(serialized)
   end
 
-  def save_task_data(data : D) forall D
+  def save_task_data(data : D) : String forall D
     data.to_json
   end
 end

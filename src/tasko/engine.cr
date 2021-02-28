@@ -1,9 +1,9 @@
 abstract class Tasko::Engine
   abstract def create_task_key : Key
 
-  abstract def load_task_data(serialized, as type : Class)
+  abstract def load_task_data(serialized : String, as type : Class)
 
-  abstract def save_task_data(data : D) forall D
+  abstract def save_task_data(data : D) : String forall D
 
   abstract def submit_changeset(changeset : Changeset, current_task_key : Key?)
 
@@ -15,6 +15,10 @@ abstract class Tasko::Engine
 
   # Optional
   def stats : Array(TaskStats)
-    [] of TaskStats
+    raise "Not Supported"
+  end
+
+  def store : KVStore
+    raise "Not Supported"
   end
 end

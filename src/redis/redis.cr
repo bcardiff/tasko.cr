@@ -8,9 +8,11 @@ class Tasko::RedisEngine < Tasko::Engine
   include NaivePollingScheduler
 
   getter! application : Application
+  getter! store : ::Tasko::KVStore
   getter redis : ::Redis::PooledClient
 
   def initialize(@redis : ::Redis::PooledClient)
+    @store = ::Tasko::RedisEngine::KVStore.new(self)
   end
 
   def submit_changeset(changeset : Changeset, current_task_key : Key?)
@@ -168,5 +170,18 @@ class Tasko::RedisEngine < Tasko::Engine
   # aka inverse dependencies
   private def following_tasks_key(task : Key)
     "tasko:following_tasks:#{task.value}"
+  end
+
+  class KVStore < ::Tasko::KVStore
+    def initialize(@engine : RedisEngine)
+    end
+
+    def save(key : String, value : D) : Nil forall D
+      @engine.redis.set(key, @engine.save_task_data(value))
+    end
+
+    def load(key : String, as type : Class)
+      @engine.load_task_data(@engine.redis.get(key).as(String), as: type)
+    end
   end
 end
