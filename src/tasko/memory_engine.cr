@@ -118,11 +118,11 @@ class Tasko::MemoryEngine < Tasko::Engine
     end
 
     def save(key : String, value : D) : Nil forall D
-      @data[key] = @engine.save_task_data(value)
+      @data[key] = @engine.serialize_data(value)
     end
 
     def load(key : String, as type : Class)
-      @engine.load_task_data(@data[key], as: type)
+      @engine.deserialize_data(@data[key], as: type)
     end
   end
 end

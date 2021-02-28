@@ -1,9 +1,9 @@
 abstract class Tasko::Engine
   abstract def create_task_key : Key
 
-  abstract def load_task_data(serialized : String, as type : Class)
+  abstract def deserialize_data(serialized : String, as type : Class)
 
-  abstract def save_task_data(data : D) : String forall D
+  abstract def serialize_data(data : D) : String forall D
 
   abstract def submit_changeset(changeset : Changeset, current_task_key : Key?)
 

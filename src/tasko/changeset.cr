@@ -14,7 +14,7 @@ class Tasko::Changeset
     new_task = CreateTask.new(
       key: @application.engine.create_task_key,
       name: name,
-      serialized_data: @application.engine.save_task_data(data)
+      serialized_data: @application.engine.serialize_data(data)
     )
 
     @created_tasks << new_task

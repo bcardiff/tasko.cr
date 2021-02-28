@@ -177,11 +177,11 @@ class Tasko::RedisEngine < Tasko::Engine
     end
 
     def save(key : String, value : D) : Nil forall D
-      @engine.redis.set(key, @engine.save_task_data(value))
+      @engine.redis.set(key, @engine.serialize_data(value))
     end
 
     def load(key : String, as type : Class)
-      @engine.load_task_data(@engine.redis.get(key).as(String), as: type)
+      @engine.deserialize_data(@engine.redis.get(key).as(String), as: type)
     end
   end
 end

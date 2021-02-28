@@ -9,7 +9,7 @@ class Tasko::Application
     raise "Task #{name} already defined" if @definitions.has_key?(name)
 
     @definitions[name] = ->(serialized : String, context : Context) {
-      data = engine.load_task_data(serialized, as: D)
+      data = engine.deserialize_data(serialized, as: D)
       body.call(data, context)
     }
   end
