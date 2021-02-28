@@ -17,7 +17,7 @@ end
 
 engine = Tasko::MosquitoEngine.new
 
-engine.redis.flushall # Clean up
+engine.redis.flushdb # Clean up
 
 app = Tasko::Application.new(engine)
 context = SquareSumMosquitoContext.new

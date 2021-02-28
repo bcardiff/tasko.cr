@@ -25,7 +25,7 @@ end
 redis = Redis::PooledClient.new url: redis_url
 engine = Tasko::RedisEngine.new(redis)
 
-engine.redis.flushall # Clean up
+engine.redis.flushdb # Clean up
 
 app = Tasko::Application.new(engine)
 context = SquareSumRedisContext.new(redis)
