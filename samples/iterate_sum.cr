@@ -1,6 +1,6 @@
 require "json"
 
-Tasko::KVStore.define IterateSumStore do
+Tasko.store IterateSumStore do
   data intermediate_result : Int32, indexed_by: Tasko::Key
   data final_result : Int32
 end

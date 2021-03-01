@@ -14,8 +14,10 @@ abstract class Tasko::KVStore
       @store.load("#{@prefix}:#{index}:#{@name}", as: V)
     end
   end
+end
 
-  macro define(class_name)
+module Tasko
+  macro store(class_name)
     macro data(name_and_type, *, indexed_by = nil)
       \{% store_prefix = @type.name %}
       \{% if name_and_type.is_a?(TypeDeclaration) %}
