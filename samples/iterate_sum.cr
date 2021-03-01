@@ -5,13 +5,8 @@ Tasko::KVStore.define IterateSumStore do
   data final_result : Int32
 end
 
-record SumParams, from : Int32, to : Int32 do
-  include JSON::Serializable
-end
-
-record IterateParams, from : Int32, to : Int32, completed_task : Tasko::Key do
-  include JSON::Serializable
-end
+Tasko.params SumParams, from : Int32, to : Int32
+Tasko.params IterateParams, from : Int32, to : Int32, completed_task : Tasko::Key
 
 def define_square_sum_tasks(app : Tasko::Application)
   c = IterateSumStore.new(app.engine)
