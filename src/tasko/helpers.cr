@@ -29,17 +29,13 @@ module Tasko::NaivePollingScheduler
   def run(application : Application, exit_on_done : Bool) : Nil
     prepare(application)
 
-    if exit_on_done
-      while !done?
-        while (task = receive_task?)
-          execute_task(task)
-        end
-
-        sleep 1
-        Fiber.yield
+    while !exit_on_done || !done?
+      while (task = receive_task?)
+        execute_task(task)
       end
 
-      # TODO should wait for all current tasks to finish
+      sleep 1
+      Fiber.yield
     end
   end
 end
