@@ -27,13 +27,16 @@ class Tasko::Application
 
   # :nodoc:
   def execute_task(task : TaskDescriptor)
+    Log.info { "Executing #{task.key} #{task.name}(#{task.serialized_data})" }
+
     changeset = create_changeset
     context = Context.new(changeset, task.key, engine.tasks_dependencies(task.key))
 
     begin
       @definitions[task.name].call(task.serialized_data, context)
-    rescue
-      # TODO Log / Retry
+    rescue e
+      # TODO Retry/mark_as_failed
+      Log.error(exception: e) { "Error while executing #{task.key}" }
     else
       engine.submit_changeset(changeset, task.key)
     ensure
