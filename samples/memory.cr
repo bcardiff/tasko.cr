@@ -12,7 +12,7 @@ app.schedule_task "square_sum", [1, 2, 3, 4]
 puts "Starting..."
 app.run(exit_on_done: true)
 
-pp! SquareSumStore.new(app.engine).final_result # => 30
+pp! SquareSumStore.new(app.engine).final_result.get # => 30
 
 puts
 

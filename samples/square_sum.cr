@@ -1,6 +1,11 @@
-Tasko::KVStore.define SquareSumStore do
-  data intermediate_result : Int32, indexed_by: Tasko::Key
-  data final_result : Int32
+class SquareSumStore < Tasko::KVStore
+  def intermediate_result(task : Tasko::Key)
+    single_value("intermediate_result:#{task}", as: Int32)
+  end
+
+  def final_result
+    single_value("final_result", as: Int32)
+  end
 end
 
 def define_square_sum_tasks(app : Tasko::Application)
@@ -20,7 +25,7 @@ def define_square_sum_tasks(app : Tasko::Application)
   app.define_task "square_elem", ->(data : Int32, context : Tasko::Context) {
     print "[#{context.current_task_key}] square_elem(#{data})..."
     # sleep 5
-    c.intermediate_result[context.current_task_key] = data ** 2
+    c.intermediate_result(context.current_task_key).set(data ** 2)
     puts "done"
   }
 
@@ -29,10 +34,10 @@ def define_square_sum_tasks(app : Tasko::Application)
     # sleep 5
     res = 0
     context.dependencies.each do |dependency_key|
-      res += c.intermediate_result[dependency_key]
+      res += c.intermediate_result(dependency_key).get
     end
 
-    c.final_result = res
+    c.final_result.set(res)
     puts "done"
   }
 end

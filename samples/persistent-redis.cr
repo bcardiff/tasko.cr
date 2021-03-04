@@ -25,4 +25,4 @@ puts
 
 app.run(exit_on_done: true)
 
-pp! SquareSumStore.new(app.engine).final_result # => 30
+pp! SquareSumStore.new(app.engine).final_result.get # => 30

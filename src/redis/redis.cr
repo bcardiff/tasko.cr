@@ -8,11 +8,11 @@ class Tasko::RedisEngine < Tasko::Engine
   include NaivePollingScheduler
 
   getter! application : Application
-  getter! store : ::Tasko::KVStore
+  getter! store_protocol : ::Tasko::KVStore::Protocol
   getter redis : ::Redis::PooledClient
 
   def initialize(@redis : ::Redis::PooledClient)
-    @store = ::Tasko::RedisEngine::KVStore.new(self)
+    @store_protocol = ::Tasko::RedisEngine::KVStoreProtocol.new(self)
   end
 
   def submit_changeset(changeset : Changeset, current_task_key : Key?)
@@ -172,16 +172,16 @@ class Tasko::RedisEngine < Tasko::Engine
     "tasko:following_tasks:#{task.value}"
   end
 
-  class KVStore < ::Tasko::KVStore
+  class KVStoreProtocol < ::Tasko::KVStore::Protocol
     def initialize(@engine : RedisEngine)
     end
 
-    def save(key : String, value : D) : Nil forall D
-      @engine.redis.set(key, @engine.serialize_data(value))
+    def set(key : String, value : String) : Nil
+      @engine.redis.set(key, value)
     end
 
-    def load(key : String, as type : Class)
-      @engine.deserialize_data(@engine.redis.get(key).as(String), as: type)
+    def get(key : String) : String
+      @engine.redis.get(key).as(String)
     end
   end
 end

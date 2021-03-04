@@ -1,54 +1,52 @@
 abstract class Tasko::KVStore
-  abstract def save(key : String, value : D) : Nil forall D
-  abstract def load(key : String, as type : Class)
-
-  struct IndexedData(K, V)
-    def initialize(@store : KVStore, @prefix : String, @name : String)
+  # :nodoc:
+  module Converter
+    def self.serialize(value) : String
+      case value
+      when String
+        value
+      else
+        value.to_json
+      end
     end
 
-    def []=(index : K, value : V)
-      @store.save("#{@prefix}:#{index}:#{@name}", value)
+    def self.deserialize(serialized : String, as type : T.class) : T forall T
+      type.from_json(serialized)
     end
 
-    def [](index : K) : V
-      @store.load("#{@prefix}:#{index}:#{@name}", as: V)
+    def self.deserialize(serialized : String, as type : String.class)
+      serialized
     end
   end
-end
 
-module Tasko
-  macro store(class_name)
-    class {{class_name}}
-      macro data(name_and_type, *, indexed_by = nil)
-        \{% store_prefix = @type.name %}
-        \{% if name_and_type.is_a?(TypeDeclaration) %}
-          \{% name = name_and_type.var.id %}
-          \{% return_type = name_and_type.type %}
-          \{% if indexed_by %}
-            def \{{name}}
-              ::Tasko::KVStore::IndexedData(\{{indexed_by}}, \{{return_type}}).new(@store, \{{store_prefix.stringify}}, \{{name.stringify}})
-            end
-          \{% else %}
-            def \{{name}}=(value : \{{return_type}})
-              @store.save("\{{store_prefix}}:\{{name}}", value)
-            end
+  # :nodoc:
+  abstract class Protocol
+    abstract def set(key : String, value : String) : Nil
+    abstract def get(key : String) : String
+  end
 
-            def \{{name}} : \{{return_type}}
-              @store.load("\{{store_prefix}}:\{{name}}", as: \{{return_type}})
-            end
-          \{% end %}
-        \{% else %}
-          \{% raise "data should be used with type declaration: `data name : Type, [index]`" %}
-        \{% end %}
-      end
+  struct Value(T)
+    getter key : String
 
-      @store : ::Tasko::KVStore
-
-      def initialize(engine : ::Tasko::Engine)
-        @store = engine.store
-      end
-
-      {{yield}}
+    def initialize(@protocol : Protocol, @key : String)
     end
+
+    def set(value : T) : Nil
+      @protocol.set(key, Converter.serialize(value))
+    end
+
+    def get : T
+      Converter.deserialize(@protocol.get(key), as: T)
+    end
+  end
+
+  @protocol : ::Tasko::KVStore::Protocol
+
+  def initialize(engine : ::Tasko::Engine)
+    @protocol = engine.store_protocol
+  end
+
+  protected def single_value(key : String, as type : T.class) : Value(T) forall T
+    ::Tasko::KVStore::Value(T).new(@protocol, key)
   end
 end

@@ -26,11 +26,11 @@ class Tasko::MemoryEngine < Tasko::Engine
 
   def initialize
     @tasks = Hash(Key, MemoryTask).new
-    @store = ::Tasko::MemoryEngine::KVStore.new(self)
+    @store_protocol = ::Tasko::MemoryEngine::KVStoreProtocol.new(self)
   end
 
   getter! application : Application
-  getter! store : ::Tasko::KVStore
+  getter! store_protocol : ::Tasko::KVStore::Protocol
 
   def submit_changeset(changeset : Changeset, current_task_key : Key?)
     # TODO lock for MT
@@ -112,17 +112,17 @@ class Tasko::MemoryEngine < Tasko::Engine
     end
   end
 
-  class KVStore < ::Tasko::KVStore
+  class KVStoreProtocol < ::Tasko::KVStore::Protocol
     def initialize(@engine : MemoryEngine)
       @data = Hash(String, String).new
     end
 
-    def save(key : String, value : D) : Nil forall D
-      @data[key] = @engine.serialize_data(value)
+    def set(key : String, value : String) : Nil
+      @data[key] = value
     end
 
-    def load(key : String, as type : Class)
-      @engine.deserialize_data(@data[key], as: type)
+    def get(key : String) : String
+      @data[key]
     end
   end
 end

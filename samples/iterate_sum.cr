@@ -1,8 +1,13 @@
 require "json"
 
-Tasko.store IterateSumStore do
-  data intermediate_result : Int32, indexed_by: Tasko::Key
-  data final_result : Int32
+class IterateSumStore < Tasko::KVStore
+  def intermediate_result(task : Tasko::Key)
+    single_value("intermediate_result:#{task}", as: Int32)
+  end
+
+  def final_result
+    single_value("final_result", as: Int32)
+  end
 end
 
 Tasko.params SumParams, from : Int32, to : Int32
@@ -18,7 +23,7 @@ def define_square_sum_tasks(app : Tasko::Application)
   }
 
   app.define_task "iterate", ->(params : IterateParams, context : Tasko::Context) {
-    c.intermediate_result[context.current_task_key] = params.from
+    c.intermediate_result(context.current_task_key).set(params.from)
 
     if params.from < params.to
       next_task = context.create_task "iterate", IterateParams.new(params.from + 1, params.to, params.completed_task)
@@ -29,9 +34,9 @@ def define_square_sum_tasks(app : Tasko::Application)
   app.define_task "sum_completed", ->(params : Nil, context : Tasko::Context) {
     res = 0
     context.dependencies.each do |dependency_key|
-      res += c.intermediate_result[dependency_key]
+      res += c.intermediate_result(dependency_key).get
     end
 
-    c.final_result = res
+    c.final_result.set(res)
   }
 end
