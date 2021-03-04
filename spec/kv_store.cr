@@ -13,6 +13,10 @@ private class Point
 end
 
 private class MyStore < Tasko::KVStore
+  def a_uri
+    single_value("a_uri", URI)
+  end
+
   def a_string
     single_value("a_string", String)
   end
@@ -57,6 +61,12 @@ describe Tasko::KVStore do
     store.a_string.set "lorem ipsum"
     store.a_string.get.should eq("lorem ipsum")
     store.@protocol.get(store.a_string.key).should eq("lorem ipsum")
+  end
+
+  it_with_store "set/get a single uri value directly" do |store|
+    store.a_uri.set URI.parse("http://example.com")
+    store.a_uri.get.should eq(URI.parse("http://example.com"))
+    store.@protocol.get(store.a_uri.key).should eq("http://example.com")
   end
 
   it_with_store "set/get a single value encoded as json" do |store|

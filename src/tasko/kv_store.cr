@@ -1,21 +1,30 @@
+require "uri"
+
 abstract class Tasko::KVStore
   # :nodoc:
   module Converter
-    def self.serialize(value) : String
-      case value
-      when String
-        value
-      else
-        value.to_json
-      end
+    def self.serialize(value : String) : String
+      value
     end
 
     def self.deserialize(serialized : String, as type : T.class) : T forall T
       type.from_json(serialized)
     end
 
+    def self.serialize(value) : String
+      value.to_json
+    end
+
     def self.deserialize(serialized : String, as type : String.class)
       serialized
+    end
+
+    def self.serialize(value : URI) : String
+      value.to_s
+    end
+
+    def self.deserialize(serialized : String, as type : URI.class)
+      URI.parse(serialized)
     end
   end
 
