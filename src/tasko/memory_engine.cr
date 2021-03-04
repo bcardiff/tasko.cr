@@ -124,5 +124,45 @@ class Tasko::MemoryEngine < Tasko::Engine
     def get(key : String) : String
       @data[key]
     end
+
+    def lrange(key : String, from : Int32, to : Int32) : Array(String)
+      raise "Not Implemented"
+    end
+
+    def lrem(key : String, count : Int32, value : String) : Int64
+      raise "Not Implemented"
+    end
+
+    def rpoplpush(source : String, destination : String) : String?
+      raise "Not Implemented"
+    end
+
+    def rpush(key : String, value : String) : Int64
+      raise "Not Implemented"
+    end
+
+    def llen(key : String) : Int64
+      raise "Not Implemented"
+    end
+
+    def scard(key : String) : Int64
+      raise "Not Implemented"
+    end
+
+    def sadd(key : String, value : String) : Int64
+      raise "Not Implemented"
+    end
+
+    def smembers(key : String) : Array(String)
+      raise "Not Implemented"
+    end
+
+    def srem(key : String, value : String) : Int64
+      raise "Not Implemented"
+    end
+
+    def sismember(key : String, value : String) : Bool
+      raise "Not Implemented"
+    end
   end
 end

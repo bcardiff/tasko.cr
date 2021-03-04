@@ -183,5 +183,45 @@ class Tasko::RedisEngine < Tasko::Engine
     def get(key : String) : String
       @engine.redis.get(key).as(String)
     end
+
+    def lrange(key : String, from : Int32, to : Int32) : Array(String)
+      @engine.redis.lrange(key, from, to).map &.as(String)
+    end
+
+    def lrem(key : String, count : Int32, value : String) : Int64
+      @engine.redis.lrem(key, count, value)
+    end
+
+    def rpoplpush(source : String, destination : String) : String?
+      @engine.redis.rpoplpush(source, destination)
+    end
+
+    def rpush(key : String, value : String) : Int64
+      @engine.redis.rpush(key, value)
+    end
+
+    def llen(key : String) : Int64
+      @engine.redis.llen(key)
+    end
+
+    def scard(key : String) : Int64
+      @engine.redis.scard(key)
+    end
+
+    def sadd(key : String, value : String) : Int64
+      @engine.redis.sadd(key, value)
+    end
+
+    def smembers(key : String) : Array(String)
+      @engine.redis.smembers(key).map &.as(String)
+    end
+
+    def srem(key : String, value : String) : Int64
+      @engine.redis.srem(key, value)
+    end
+
+    def sismember(key : String, value : String) : Bool
+      @engine.redis.sismember(key, value) != 0
+    end
   end
 end
