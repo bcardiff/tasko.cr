@@ -46,7 +46,7 @@ def it_with_store(description, file = __FILE__, line = __LINE__, &block : MyStor
     end
   end
 
-  pending("#{description} (with memory)", file: file, line: line) do
+  it("#{description} (with memory)", file: file, line: line) do
     engine = Tasko::MemoryEngine.new
     block.call(MyStore.new(engine))
   end

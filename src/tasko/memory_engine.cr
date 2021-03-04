@@ -114,7 +114,23 @@ class Tasko::MemoryEngine < Tasko::Engine
 
   class KVStoreProtocol < ::Tasko::KVStore::Protocol
     def initialize(@engine : MemoryEngine)
-      @data = Hash(String, String).new
+      @data = Hash(String, String | Set(String) | Array(String)).new
+    end
+
+    protected def _array(key)
+      if res = @data[key]?
+        res.as(Array(String))
+      else
+        @data[key] = res = Array(String).new
+      end
+    end
+
+    protected def _set(key)
+      if res = @data[key]?
+        res.as(Set(String))
+      else
+        @data[key] = res = Set(String).new
+      end
     end
 
     def set(key : String, value : String) : Nil
@@ -122,47 +138,77 @@ class Tasko::MemoryEngine < Tasko::Engine
     end
 
     def get(key : String) : String
-      @data[key]
+      @data[key].as(String)
     end
 
     def lrange(key : String, from : Int32, to : Int32) : Array(String)
-      raise "Not Implemented"
+      _array(key)[from..to]
     end
 
     def lrem(key : String, count : Int32, value : String) : Int64
-      raise "Not Implemented"
+      list = _array(key)
+      len0 = list.size
+
+      if count == 0
+        list.delete(value)
+      elsif count > 0
+        # TODO optimize
+        count.times do
+          if (index = list.index(value))
+            list.delete_at(index)
+          else
+            break
+          end
+        end
+      else
+        # TODO optimize
+        (-count).times do
+          if (index = list.rindex(value))
+            list.delete_at(index)
+          else
+            break
+          end
+        end
+      end
+
+      (len0 - list.size).to_i64
     end
 
     def rpoplpush(source : String, destination : String) : String?
-      raise "Not Implemented"
+      if elem = _array(source).pop?
+        _array(destination).push(elem)
+      end
+
+      elem
     end
 
     def rpush(key : String, value : String) : Int64
-      raise "Not Implemented"
+      _array(key) << value
+      llen(key)
     end
 
     def llen(key : String) : Int64
-      raise "Not Implemented"
+      _array(key).size.to_i64
     end
 
     def scard(key : String) : Int64
-      raise "Not Implemented"
+      _set(key).size.to_i64
     end
 
     def sadd(key : String, value : String) : Int64
-      raise "Not Implemented"
+      _set(key).add?(value) ? 1i64 : 0i64
     end
 
     def smembers(key : String) : Array(String)
-      raise "Not Implemented"
+      _set(key).to_a
     end
 
     def srem(key : String, value : String) : Int64
-      raise "Not Implemented"
+      _set(key).delete(value) ? 1i64 : 0i64
     end
 
     def sismember(key : String, value : String) : Bool
-      raise "Not Implemented"
+      _set(key).includes?(value)
     end
   end
 end
