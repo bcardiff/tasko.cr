@@ -26,3 +26,6 @@ pp! IterateSumStore.new(app.engine).final_result # => 30
 
 Tasko.generate_dot(STDOUT, app)
 puts
+
+Tasko.generate_collapsed_dot(STDOUT, app)
+puts
